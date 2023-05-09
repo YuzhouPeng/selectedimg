@@ -1,17 +1,23 @@
 import torch,os
 from PIL import Image
-from lavis.models import load_model_and_preprocess
 import pandas as pd
+from interface import get_model,do_generate
+
+device = torch.device("cuda") if torch.cuda.is_available() else "cpu"
+
+
+
+model, tokenizer, img_processor = get_model(
+        checkpoint_path='/code/mPLUG-Owl/pretrained_weight/pretrained.pth', tokenizer_path='/gemini/code/mPLUG-Owl/tokenizer_weights/tokenizer.model')
 
 # setup device to use
-device = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 # load sample image
 
     
 image_list = []
 image_name_list = []
 
-for parent,_,files in os.walk("./bdd_100_test"):
+for parent,_,files in os.walk("/gemini/code/mPLUG-Owl/selectedimg/bdd_100_test"):
     for file in files:
         filepath = os.path.join(parent,file)
         image_list.append(filepath)
@@ -54,29 +60,38 @@ for type_name in typenames_t5:
     t5_models.append(model)
     t5_processor.append(vis_processors)
 
-
+sentence = do_generate(prompt_questions, image_list, model, tokenizer,
+                               img_processor, max_length=512, top_k=5, do_sample=True)
 
 # read image to text
-# t5
-for i in range(len(image_list)):
 
-    raw_image = Image.open(image_list[i]).convert("RGB")
-    # prepare the image
-    print("current num {}".format(i))
-    print(image_name_list[i])
-    for k in range(len(t5_models)):
-        modelname = "blip2_t5"+typenames[k]
-        print(modelname)
-        imagesets.append(image_name_list[i]+" "+modelname)
-        model,vis_processors = t5_models[k],t5_processor[k]
-        image = vis_processors["eval"](raw_image).unsqueeze(0).to(device)
-        temp = []
-        for j in  range(len(caption_prompt_output_sets)):
-            if j==0:
-                temp.append(model.generate({"image": image}))
-            else:
-                temp.append(model.generate({"image": image, "prompt": "Question: "+prompt_questions[j-1]}))
-        caption_output_sets_data.append(temp)
+print(sentence)
+
+
+# t5
+# for i in range(len(image_list)):
+
+#     raw_image = Image.open(image_list[i]).convert("RGB")
+#     # prepare the image
+#     print("current num {}".format(i))
+#     print(image_name_list[i])
+#     for k in range(len(t5_models)):
+#         modelname = "blip2_t5"+typenames[k]
+#         print(modelname)
+#         imagesets.append(image_name_list[i]+" "+modelname)
+#         model,vis_processors = t5_models[k],t5_processor[k]
+#         image = vis_processors["eval"](raw_image).unsqueeze(0).to(device)
+#         temp = []
+#         for j in  range(len(caption_prompt_output_sets)):
+#             if j==0:
+#                 temp.append(model.generate({"image": image}))
+#             else:
+#                 temp.append(model.generate({"image": image, "prompt": "Question: "+prompt_questions[j-1]}))
+#         caption_output_sets_data.append(temp)
+
+
+
+
         # print(model.generate({"image": image}))
         # print(model.generate({"image": image, "prompt": "Question: describe the weather in this image?"}))
 
@@ -136,14 +151,17 @@ for i in range(len(image_list)):
 
     #     print(model.generate({"image": image, "prompt": "Question: is there any building in this image? tell me the style of build?"}))
 
-for caption_output_sets in caption_output_sets_data:
-    print(caption_output_sets)
 
-df = pd.DataFrame(caption_output_sets_data,columns=caption_prompt_output_sets)
-col_names = df.columns.tolist()
-col_names.insert(0,imagesets[0])
-df = df.reindex(columns=col_names)
-df[imagesets[0]] = imagesets[1:]
 
-df.to_excel("result_t5.xlsx",index=False)
+
+# for caption_output_sets in caption_output_sets_data:
+#     print(caption_output_sets)
+
+# df = pd.DataFrame(caption_output_sets_data,columns=caption_prompt_output_sets)
+# col_names = df.columns.tolist()
+# col_names.insert(0,imagesets[0])
+# df = df.reindex(columns=col_names)
+# df[imagesets[0]] = imagesets[1:]
+
+# df.to_excel("result_t5.xlsx",index=False)
 
