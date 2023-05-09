@@ -54,11 +54,11 @@ imagesets = ["image_names"]
 raw_image = Image.open(image_list[0]).convert("RGB")
 print(raw_image)
 
-for type_name in typenames_t5:
+# for type_name in typenames_t5:
 
-    model, vis_processors, _ = load_model_and_preprocess(name="blip2_t5", model_type=type_name, is_eval=True, device=device)
-    t5_models.append(model)
-    t5_processor.append(vis_processors)
+#     model, vis_processors, _ = load_model_and_preprocess(name="blip2_t5", model_type=type_name, is_eval=True, device=device)
+#     t5_models.append(model)
+#     t5_processor.append(vis_processors)
 
 sentence = do_generate(prompt_questions, image_list, model, tokenizer,
                                img_processor, max_length=512, top_k=5, do_sample=True)
