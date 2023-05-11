@@ -1,4 +1,5 @@
 import torch,os
+from torch import inf
 from PIL import Image
 import pandas as pd
 from interface import get_model,do_generate
@@ -8,7 +9,7 @@ device = torch.device("cuda") if torch.cuda.is_available() else "cpu"
 
 
 model, tokenizer, img_processor = get_model(
-        checkpoint_path='/code/mPLUG-Owl/pretrained_weight/pretrained.pth', tokenizer_path='/gemini/code/mPLUG-Owl/tokenizer_weights/tokenizer.model')
+        checkpoint_path='/gemini/code/mPLUG-Owl/pretrained_weight/pretrained.pth', tokenizer_path='/gemini/code/mPLUG-Owl/tokenizer_weights/tokenizer.model')
 
 # setup device to use
 # load sample image
@@ -23,7 +24,9 @@ for parent,_,files in os.walk("/gemini/code/mPLUG-Owl/selectedimg/bdd_100_test")
         image_list.append(filepath)
         image_name_list.append(file)
 
-print(image_list)
+# print(image_list)
+
+# image_list = ['/gemini/code/mPLUG-Owl/selectedimg/bdd_100_test/5875.jpg']
 
 typenames_t5 = ["pretrain_flant5xl", "caption_coco_flant5xl", "pretrain_flant5xxl"]
 typenames = ["pretrain_opt2.7b", "caption_coco_opt2.7b", "pretrain_opt6.7b", "caption_coco_opt6.7b"]
@@ -36,10 +39,13 @@ t5_models = []
 t5_processor = []
 
 
-prompt_questions = ["describe the weather in this image?","describe the brightness and contrast in this image?","describe the road condition in this image?","describe the nature environment in this image?",
+prompt_questions = ["describe the weather in this image","describe the brightness and contrast in this image","describe the road condition in this image?","describe the nature environment in this image?",
                     "describe the landscape in this image?","is there any pedestrian in this image? the number of pedestrian?","is there any vehicle in this image? tell me the number of vehicle",
                     "is there any scooter in this image? tell me the number of scooter?","is there any tricycle/bicycle in this image? tell me the number of tricycle/bicycle?",
                     "is there any building in this image? tell me the number of building?","describe the semantic information in this image?"]
+
+
+
 
 caption_prompt_output_sets = ["image caption","weather","brightness and contrast","road condition","nature environment","landscape","pedestrian","vehicle","scooter","bicycle/tricycle","building","semantic information"]
 
@@ -84,6 +90,9 @@ print(sentence)
 #         temp = []
 #         for j in  range(len(caption_prompt_output_sets)):
 #             if j==0:
+#                 temp.append(model.generate({"image": image}))
+#             else:
+#                 temp.append(model.generate({"image": image, "prompt": "Question: "+prompt_questions[j-1]}))
 #                 temp.append(model.generate({"image": image}))
 #             else:
 #                 temp.append(model.generate({"image": image, "prompt": "Question: "+prompt_questions[j-1]}))
@@ -162,6 +171,3 @@ print(sentence)
 # col_names.insert(0,imagesets[0])
 # df = df.reindex(columns=col_names)
 # df[imagesets[0]] = imagesets[1:]
-
-# df.to_excel("result_t5.xlsx",index=False)
-
